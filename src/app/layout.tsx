@@ -1,6 +1,6 @@
 // src/app/layout.tsx
 import React from 'react';
-import '../globals.css'; // if you have global styles
+import './globals.css'; // if you have global styles
 
 export const metadata = {
   title: 'PCB Upload Portal',
