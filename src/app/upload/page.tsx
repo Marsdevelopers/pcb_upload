@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { UploadForm, SuccessMessage } from "@/components/pcb-upload"; // we'll extract them below
+import { UploadForm, SuccessMessage } from "@/components/pcb-upload"; // ✅ import both components
 
 export default function UploadPage() {
   const [view, setView] = useState("form");
