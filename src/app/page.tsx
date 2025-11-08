@@ -27,10 +27,10 @@ export default function HomePage() {
       {/* Hero Section */}
       <main className="flex-1 flex flex-col items-center justify-center text-center px-6 py-16">
         <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6">
-          Fast & Reliable PCB Manufacturing
+          Fast & Reliable PCB Manufacturing & Prototyping 
         </h2>
         <p className="text-lg text-gray-600 max-w-2xl mb-10">
-          We provide professional PCB fabrication and assembly services for hobbyists, startups, and enterprises.
+          We provide professional PCB fabrication, assembly services and Prototyping in Hardware & Software for hobbyists, startups, and school / college students.
           Upload your Gerber files and get instant quotes, fast delivery, and industry-grade quality.
         </p>
         <Link
@@ -47,8 +47,8 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-3 gap-8 text-center">
           {[
             {
-              title: "Prototype to Production",
-              desc: "Whether you need a single prototype or mass production, we handle it efficiently.",
+              title: "Prototype ",
+              desc: "We help you to build your prototype / projects for startups and for colleges.",
             },
             {
               title: "Quality Assurance",
