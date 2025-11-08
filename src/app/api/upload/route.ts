@@ -3,29 +3,58 @@ import cloudinary from "@/lib/cloudinary";
 import { supabase } from "@/lib/supabase";
 import { sendTelegramNotification } from "@/lib/telegram";
 
+// ✅ Server runtime config for file uploads
 export const runtime = "nodejs";
-export const maxDuration = 60;
 export const dynamic = "force-dynamic";
 export const preferredRegion = "auto";
+export const maxDuration = 60;
+export const bodyParser = false;
+export const maxBodySize = "20mb"; // allow larger uploads
 
-export const bodyParser = false; // ✅ correct in App Router
-export const maxBodySize = "10mb"; // ✅ allow larger uploads
+// ✅ Ensure Vercel doesn't limit body size
+export const config = {
+  api: {
+    bodyParser: false,
+    sizeLimit: "20mb",
+  },
+};
 
+// ✅ Add CORS headers so Chrome mobile doesn't block requests
+function corsHeaders() {
+  return {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  };
+}
 
+// ✅ Handle preflight requests
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 204,
+    headers: corsHeaders(),
+  });
+}
+
+// ✅ Handle file upload
 export async function POST(req: Request) {
   try {
+    console.log("Incoming upload request:", req.headers.get("user-agent"));
+
     const formData = await req.formData();
-    const file = formData.get("file") as File;
+    const file = formData.get("file") as File | null;
     const name = formData.get("name") as string;
     const email = formData.get("email") as string;
     const phone = formData.get("phone") as string;
     const notes = formData.get("notes") as string;
 
     if (!file) {
-      return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+      return NextResponse.json(
+        { error: "No file uploaded" },
+        { status: 400, headers: corsHeaders() }
+      );
     }
 
-    // ✅ Optional file-type check
     const allowedTypes = [
       "image/png",
       "image/jpeg",
@@ -37,11 +66,11 @@ export async function POST(req: Request) {
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
         { error: "Invalid file type" },
-        { status: 400 }
+        { status: 400, headers: corsHeaders() }
       );
     }
 
-    // ✅ Convert file to Buffer and upload to Cloudinary
+    // ✅ Convert file to Buffer for Cloudinary upload
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
@@ -59,7 +88,7 @@ export async function POST(req: Request) {
       stream.end(buffer);
     });
 
-    // ✅ Save record in Supabase
+    // ✅ Store submission in Supabase
     const { data, error } = await supabase
       .from("submissions")
       .insert([
@@ -76,7 +105,7 @@ export async function POST(req: Request) {
 
     if (error) throw error;
 
-    // ✅ Telegram alert
+    // ✅ Send Telegram notification
     await sendTelegramNotification({
       name,
       email,
@@ -85,12 +114,15 @@ export async function POST(req: Request) {
       file_name: (uploadResult as any).original_filename,
     });
 
-    return NextResponse.json({
-      success: true,
-      message: "File uploaded successfully",
-    });
+    return NextResponse.json(
+      { success: true, message: "File uploaded successfully" },
+      { status: 200, headers: corsHeaders() }
+    );
   } catch (err: any) {
     console.error("Upload error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json(
+      { error: err.message || "Internal server error" },
+      { status: 500, headers: corsHeaders() }
+    );
   }
 }
